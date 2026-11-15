@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Трекер Дисциплины</title>
+<head>
+  <!-- Для iPhone (iOS) -->
+  <link rel="apple-touch-icon" href="icon.png?v=2">
+  
+  <!-- Для Android и браузеров -->
+  <link rel="icon" type="image/png" href="icon.png?v=2">
+</head>
+<link rel="manifest" href="manifest.json?v=2">
+
+  <style>
+.author-sign {
+  text-align: right;
+  font-size: 13px;
+  color: #666666;
+  margin: 18px 0 15px;
+  line-height: 1.4;
+}
+
+	.greeting-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+#edit-name-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+#edit-name-btn:hover {
+  opacity: 1;
+}
+
+/* Стили всплывающего окна */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.modal-box {
+  background: #ffffff;
+  color: #333333;
+  padding: 25px 30px;
+  border-radius: 12px;
+  text-align: center;
+  max-width: 320px;
+  width: 90%;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.modal-box input {
+  width: 100%;
+  padding: 10px;
+  margin: 15px 0;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+.modal-box button {
+  width: 100%;
+  padding: 10px;
+  background-color: #2e7d32; /* Можете поменять под цвет вашего трекера */
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.modal-box button:hover {
+  background-color: #1b5e20;
+}
+
+    :root {
+      --bg: #f4f6f8;
+      --card: #ffffff;
+      --text: #1a202c;
+      --text-muted: #718096;
+      --border: #e2e8f0;
+      --accent: #10b981;
+      --accent-soft: rgba(16, 185, 129, 0.12);
+      --gold: #d97706;
+      --danger: #ef4444;
+      --shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    body.dark {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --border: #334155;
+      --accent: #10b981;
+      --accent-soft: rgba(16, 185, 129, 0.18);
+      --shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      padding: 16px;
+      padding-bottom: 80px;
+      transition: background-color 0.25s, color 0.25s;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .title-group h1 {
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .title-group p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .icon-btn {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow);
+    }
+
+    .dashboard {
+      background: var(--card);
+      border-radius: 18px;
+      padding: 18px;
+      margin-bottom: 18px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+
+    .dash-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 10px;
+    }
+
+    .dash-percent {
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--accent);
+      line-height: 1;
+    }
+
+    .dash-stats {
+      text-align: right;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .streak-badge {
+      display: inline-block;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 8px;
+      margin-bottom: 4px;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 10px;
+      background: var(--border);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 99px;
+      transition: width 0.35s ease;
+    }
+
+    .category-card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      transition: border-color 0.2s;
+    }
+
+    .category-card.completed-card {
+      border-color: rgba(16, 185, 129, 0.45);
+    }
+
+    .cat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .cat-title {
+      font-size: 17px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .cat-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 6px;
+      background: var(--border);
+      color: var(--text-muted);
+    }
+
+    .cat-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .cat-percent {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .cat-arrow {
+      font-size: 12px;
+      color: var(--text-muted);
+      transition: transform 0.2s ease;
+      display: inline-block;
+    }
+
+    /* Состояние свернутой карточки */
+    .category-card.collapsed .cat-header {
+      margin-bottom: 0;
+    }
+
+    .category-card.collapsed .cat-arrow {
+      transform: rotate(-90deg);
+    }
+
+    .category-card.collapsed .cat-body {
+      display: none;
+    }
+
+    .cat-subtext {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .task-list {
+      list-style: none;
+      margin-top: 8px;
+    }
+
+    .task-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .task-item:last-child {
+      border-bottom: none;
+    }
+
+    .task-label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      flex: 1;
+      font-size: 15px;
+    }
+
+    .task-label input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      accent-color: var(--accent);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .task-label.done span {
+      text-decoration: line-through;
+      color: var(--text-muted);
+    }
+
+    .del-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 16px;
+      padding: 4px 8px;
+      cursor: pointer;
+      opacity: 0.6;
+    }
+
+    .add-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .add-row input {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 9px 12px;
+      border-radius: 10px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .add-row button {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border: none;
+      padding: 0 15px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 14px;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+    }
+
+    .btn-secondary-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-sec {
+      flex: 1;
+      background: var(--card);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 11px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+       .stats-box {
+      margin-top: 18px;
+      background: var(--card);
+      border-radius: 16px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+
+    .stats-summary {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .stat-pill {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+
+    .stat-pill-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .stat-pill-val {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--accent);
+      margin-top: 2px;
+    }
+
+    .stat-pill-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .cal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .cal-header h3 {
+      font-size: 15px;
+      text-transform: capitalize;
+    }
+
+    .cal-nav {
+      display: flex;
+      gap: 6px;
+    }
+
+    .cal-nav button {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .cal-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      text-align: center;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+    }
+
+    .cal-day {
+      aspect-ratio: 1 / 1.15;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      position: relative;
+    }
+
+    .cal-day.empty {
+      background: transparent;
+      border-color: transparent;
+    }
+
+    .cal-day.today {
+      border: 2px solid var(--accent);
+    }
+
+    .cal-day-num {
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    .cal-day-pct {
+      font-size: 9px;
+      font-weight: 700;
+      margin-top: 1px;
+    }
+
+    .cal-day.lvl-high {
+      background: #10b981;
+      color: #ffffff;
+      border-color: #10b981;
+    }
+
+    .cal-day.lvl-mid {
+      background: rgba(16, 185, 129, 0.25);
+      color: var(--text);
+      border-color: rgba(16, 185, 129, 0.5);
+    }
+
+    .cal-day.lvl-low {
+      background: rgba(217, 119, 6, 0.2);
+      color: var(--text);
+      border-color: rgba(217, 119, 6, 0.45);
+    }
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .about-fancy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 20px;
+    border: 1px solid rgba(217, 119, 6, 0.45);
+    background: linear-gradient(135deg, rgba(46, 125, 50, 0.15), rgba(217, 119, 6, 0.15));
+    color: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.25s ease;
+  }
+
+  .about-fancy-btn:hover {
+    transform: translateY(-1px);
+    border-color: rgba(217, 119, 6, 0.8);
+    background: linear-gradient(135deg, rgba(46, 125, 50, 0.25), rgba(217, 119, 6, 0.25));
+    box-shadow: 0 4px 12px rgba(217, 119, 6, 0.2);
+  }
+.quote-card {
+  margin: 16px 0;
+  padding: 16px 18px;
+  border-radius: 14px;
+  border-left: 4px solid #d97706;
+  background: linear-gradient(135deg, rgba(46, 125, 50, 0.08), rgba(217, 119, 6, 0.08));
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s ease;
+}
+
+.quote-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.quote-badge {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #d97706;
+}
+
+.quote-refresh {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  opacity: 0.6;
+  transition: transform 0.3s ease, opacity 0.2s;
+}
+
+.quote-refresh:hover {
+  opacity: 1;
+  transform: rotate(90deg);
+}
+
+.quote-text {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  line-height: 1.55;
+  font-style: italic;
+}
+
+.quote-source {
+  font-size: 12px;
+  opacity: 0.7;
+  text-align: right;
+  font-weight: 600;
+}
+/* Плавная анимация нажатия на задачу */
+.task-item, li, label {
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s ease, opacity 0.2s ease;
+}
+
+/* Класс, который добавляется на долю секунды при клике */
+.pop-effect {
+  transform: scale(1.03);
+}
+
+/* Анимация для галочки (чекбокса) */
+input[type="checkbox"] {
+  transition: transform 0.2s ease;
+  cursor: pointer;
+}
+
+input[type="checkbox"]:checked {
+  animation: checkBounce 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes checkBounce {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+
+/* Стили для разлетающихся искорок при выполнении */
+.sparkle {
+  position: fixed;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  animation: flySparkle 0.6s ease-out forwards;
+}
+
+@keyframes flySparkle {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--tx), var(--ty)) scale(0);
+    opacity: 0;
+  }
+}
+
+
+  </style>
+  <!-- Настройки для установки как приложение (PWA) -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Дисциплина">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://w3.org' viewBox='0 0 512 512'%3E%3Cdefs%3E%3ClinearGradient id='bg' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23064e3b'/%3E%3Cstop offset='100%25' stop-color='%230f172a'/%3E%3C/linearGradient%3E%3ClinearGradient id='gold' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23fbbf24'/%3E%3Cstop offset='100%25' stop-color='%23d97706'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='512' height='512' rx='112' fill='url(%23bg)'/%3E%3Ccircle cx='256' cy='256' r='190' fill='none' stroke='url(%23gold)' stroke-width='8' stroke-opacity='0.3'/%3E%3Cpath d='M285 135c-68 0-123 55-123 123s55 123 123 123c24 0 46-7 65-19-48-11-84-54-84-104s36-93 84-104c-19-12-41-19-65-19z' fill='url(%23gold)'/%3E%3Cpolygon points='345,195 354,218 378,218 359,232 366,255 345,241 324,255 331,232 312,218 336,218' fill='url(%23gold)'/%3E%3C/svg%3E">
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
+	
+
+</head>
+<body>
+  <div class="greeting-header">
+    <h2 id="greeting-text">Ассаляму алейкум!</h2>
+    <button id="edit-name-btn" title="Изменить имя" style="display: none;">✏️</button>
+  </div>
+
+  <header>
+    <div class="title-group">
+      <h1>Дисциплина</h1>
+      <p id="currentDate"></p>
+    </div>
+
+    <div class="header-actions">
+     <button id="about-btn" class="about-fancy-btn" title="О трекере" onclick="document.getElementById('about-modal').style.display='flex'">
+  <span>✨ О трекере</span>
+</button>
+      <button class="icon-btn" id="themeToggle" title="Сменить тему">🌙</button>
+    </div>
+  </header>
+
+  <div class="dashboard">
+    <div class="dash-top">
+      <div>
+        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">ОБЩИЙ ПРОГРЕСС ДНЯ</div>
+        <div class="dash-percent" id="totalPercent">0%</div>
+      </div>
+      <div class="dash-stats">
+        <div class="streak-badge" id="streakText">🔥 Серия: 0 дн.</div>
+        <div id="completedCatsText">0 из 6 сфер закрыто</div>
+      </div>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="totalBar" style="width: 0%"></div>
+    </div>
+  </div>
+
+<!-- Блок с аятами и хадисами -->
+<div class="quote-card" id="quoteCard">
+  <div class="quote-header">
+    <span class="quote-badge" id="quoteCategory">✨ Напоминание о постоянстве</span>
+    <button type="button" class="quote-refresh" id="refreshQuoteBtn" title="Другая цитата">🔄</button>
+  </div>
+  <p class="quote-text" id="quoteText">«Самые любимые деяния пред Аллахом — те, которые совершаются с постоянством, даже если их немного».</p>
+  <div class="quote-source" id="quoteSource">Хадис (Аль-Бухари, Муслим)</div>
+</div>
+
+  <div id="categoriesContainer"></div>
+
+  <div class="actions">
+    <button class="btn-primary" onclick="finishDay()">✅ Завершить день и начать новый</button>
+    <div class="btn-secondary-row">
+      <button class="btn-sec" onclick="exportData()">📤 Копировать бэкап</button>
+      <button class="btn-sec" onclick="importData()">📥 Вставить бэкап</button>
+    </div>
+  </div>
+
+  <div class="stats-box">
+    <div class="stats-summary">
+      <div class="stat-pill">
+        <div class="stat-pill-label">За неделю (7 дн.)</div>
+        <div class="stat-pill-val" id="weekAvg">0%</div>
+        <div class="stat-pill-sub" id="weekCount">0 дн. в зачете</div>
+      </div>
+      <div class="stat-pill">
+        <div class="stat-pill-label">Итого за месяц</div>
+        <div class="stat-pill-val" id="monthAvg">0%</div>
+        <div class="stat-pill-sub" id="monthCount">0 дн. в зачете</div>
+      </div>
+    </div>
+
+    <div class="cal-header">
+      <h3 id="calMonthTitle">Ноябрь 2026</h3>
+      <div class="cal-nav">
+        <button onclick="changeMonth(-1)">‹</button>
+        <button onclick="changeMonth(1)">›</button>
+      </div>
+    </div>
+
+    <div class="cal-weekdays">
+      <div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div>
+    </div>
+    <div class="cal-grid" id="calendarGrid"></div>
+  </div>
+
+
+<script>
+  const STORAGE_KEY = 'discipline_tracker_v2';
+  const THEME_KEY = 'discipline_theme_v1';
+
+  const defaultData = {
+    streak: 0,
+    history: [],
+    categories: [
+      {
+        id: 'namaz',
+        title: '🕌 Намаз',
+        mode: 'strict',
+        tasks: [
+          { text: 'Фаджр — Сунна', done: false },
+          { text: 'Фаджр — Фард', done: false },
+          { text: 'Зухр — Сунна', done: false },
+          { text: 'Зухр — Фард', done: false },
+          { text: 'Аср — Фард', done: false },
+          { text: 'Магриб — Фард', done: false },
+          { text: 'Магриб — Сунна', done: false },
+          { text: 'Иша — Фард', done: false },
+          { text: 'Иша — Сунна', done: false },
+          { text: 'Витр', done: false }
+        ]
+      },
+      {
+        id: 'family',
+        title: '🏡 Семья',
+        mode: 'any',
+        tasks: [
+          { text: 'Позвонить / навестить родителей', done: false },
+          { text: 'Качественное время с близкими', done: false },
+          { text: 'Помощь по дому / семейные дела', done: false }
+        ]
+      },
+      {
+        id: 'sport',
+        title: '💪 Спорт',
+        mode: 'any',
+        tasks: [
+          { text: 'Пробежка 1+ км', done: false },
+          { text: 'Отжимания / турник', done: false },
+          { text: 'Ходьба / разминка', done: false }
+        ]
+      },
+      {
+        id: 'study',
+        title: '📚 Учеба',
+        mode: 'any',
+        tasks: [
+          { text: 'Чтение книги / конспектов 30 мин', done: false },
+          { text: 'Изучение нового материала', done: false }
+        ]
+      },
+      {
+        id: 'content',
+        title: '🎬 Контент',
+        mode: 'any',
+        tasks: [
+          { text: 'Написать идею / сценарий', done: false },
+          { text: 'Снять или смонтировать ролик', done: false },
+          { text: 'Опубликовать пост / видео', done: false }
+        ]
+      },
+      {
+        id: 'sleep',
+        title: '😴 Сон',
+        mode: 'any',
+        tasks: [
+          { text: 'Лечь спать вовремя (до 23:30)', done: false },
+          { text: 'Без телефона за 30 мин до сна', done: false },
+          { text: 'Подъем по будильнику без перестановки', done: false }
+        ]
+      }
+    ]
+  };
+
+  let appData = loadData();
+  let openCategories = new Set();
+  let calDate = new Date();
+
+  function loadData() {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return JSON.parse(JSON.stringify(defaultData));
+  }
+
+  function saveData() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+  }
+
+  function getIsoDate(d) {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  function renderDate() {
+    const now = new Date();
+    document.getElementById('currentDate').textContent = now.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
+  }
+
+  const themeBtn = document.getElementById('themeToggle');
+  if (localStorage.getItem(THEME_KEY) === 'dark') {
+    document.body.classList.add('dark');
+    themeBtn.textContent = '☀️';
+  }
+  themeBtn.addEventListener('click', () => {
+    document.body.classList.toggle('dark');
+    const isDark = document.body.classList.contains('dark');
+    themeBtn.textContent = isDark ? '☀️' : '🌙';
+    localStorage.setItem(THEME_KEY, isDark ? 'dark' : 'light');
+  });
+    function getCategoryStats(cat) {
+    const total = cat.tasks.length;
+    const doneCount = cat.tasks.filter(t => t.done).length;
+    if (total === 0) return { percent: 0, doneCount: 0, total: 0, isClosed: false };
+    const percent = cat.mode === 'strict' ? Math.round((doneCount / total) * 100) : (doneCount > 0 ? 100 : 0);
+    return { percent, doneCount, total, isClosed: percent === 100 };
+  }
+
+  function toggleCategory(catId) {
+    if (openCategories.has(catId)) openCategories.delete(catId);
+    else openCategories.add(catId);
+    render();
+  }
+
+  function toggleTask(catIndex, taskIndex) {
+    appData.categories[catIndex].tasks[taskIndex].done = !appData.categories[catIndex].tasks[taskIndex].done;
+    saveData();
+    render();
+  }
+
+  function addTask(catIndex) {
+    const input = document.getElementById('input-' + catIndex);
+    const text = input.value.trim();
+    if (!text) return;
+    appData.categories[catIndex].tasks.push({ text: text, done: false });
+    saveData();
+    render();
+  }
+
+  function deleteTask(catIndex, taskIndex) {
+    appData.categories[catIndex].tasks.splice(taskIndex, 1);
+    saveData();
+    render();
+  }
+
+  function render() {
+    const container = document.getElementById('categoriesContainer');
+    container.innerHTML = '';
+    let sumPercents = 0;
+    let closedCats = 0;
+
+    appData.categories.forEach(function(cat, catIndex) {
+      const stats = getCategoryStats(cat);
+      sumPercents += stats.percent;
+      if (stats.isClosed) closedCats++;
+
+      const isOpen = openCategories.has(cat.id);
+      const badgeText = cat.mode === 'strict' ? 'Полный учет' : 'Минимум 1 пункт';
+      const subText = cat.mode === 'strict'
+        ? 'Выполнено: ' + stats.doneCount + ' из ' + stats.total
+        : 'Выполнено: ' + stats.doneCount + ' из ' + stats.total + ' (засчитывается при 1+ пункте)';
+
+      const card = document.createElement('div');
+      card.className = 'category-card' + (isOpen ? '' : ' collapsed') + (stats.isClosed ? ' completed-card' : '');
+
+      let tasksHtml = '';
+      cat.tasks.forEach(function(task, taskIndex) {
+        tasksHtml += '<li class="task-item">' +
+          '<label class="task-label ' + (task.done ? 'done' : '') + '">' +
+          '<input type="checkbox" ' + (task.done ? 'checked' : '') + ' onchange="toggleTask(' + catIndex + ',' + taskIndex + ')">' +
+          '<span>' + escapeHtml(task.text) + '</span>' +
+          '</label>' +
+          '<button class="del-btn" onclick="deleteTask(' + catIndex + ',' + taskIndex + ')">✕</button>' +
+          '</li>';
+      });
+
+      card.innerHTML = '<div class="cat-header" onclick="toggleCategory(\'' + cat.id + '\')">' +
+        '<div class="cat-title"><span>' + cat.title + '</span><span class="cat-badge">' + badgeText + '</span></div>' +
+        '<div class="cat-right"><span class="cat-percent">' + stats.percent + '%</span><span class="cat-arrow">▼</span></div>' +
+        '</div>' +
+        '<div class="cat-body">' +
+        '<div class="cat-subtext">' + subText + '</div>' +
+        '<ul class="task-list">' + tasksHtml + '</ul>' +
+        '<div class="add-row">' +
+        '<input type="text" id="input-' + catIndex + '" placeholder="Добавить пункт..." onkeydown="if(event.key===\'Enter\') addTask(' + catIndex + ')">' +
+        '<button onclick="addTask(' + catIndex + ')">+</button>' +
+        '</div></div>';
+
+      container.appendChild(card);
+    });
+
+    const totalCats = appData.categories.length;
+    const totalPercent = totalCats > 0 ? Math.round(sumPercents / totalCats) : 0;
+    document.getElementById('totalPercent').textContent = totalPercent + '%';
+    document.getElementById('totalBar').style.width = totalPercent + '%';
+    document.getElementById('completedCatsText').textContent = closedCats + ' из ' + totalCats + ' сфер закрыто';
+    document.getElementById('streakText').textContent = '🔥 Серия: ' + appData.streak + ' дн.';
+    renderAnalyticsAndCalendar();
+  }
+
+  function changeMonth(delta) {
+    calDate.setMonth(calDate.getMonth() + delta);
+    renderAnalyticsAndCalendar();
+  }
+
+  function renderAnalyticsAndCalendar() {
+    const mapByIso = {};
+    (appData.history || []).forEach(function(item) { if (item.iso) mapByIso[item.iso] = item.percent; });
+
+    const now = new Date();
+    let weekSum = 0, weekDays = 0;
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(now);
+      d.setDate(now.getDate() - i);
+      const iso = getIsoDate(d);
+      if (mapByIso[iso] !== undefined) { weekSum += mapByIso[iso]; weekDays++; }
+    }
+    document.getElementById('weekAvg').textContent = (weekDays > 0 ? Math.round(weekSum / weekDays) : 0) + '%';
+    document.getElementById('weekCount').textContent = weekDays + ' из 7 дн. закрыто';
+
+    const year = calDate.getFullYear(), month = calDate.getMonth();
+    const monthPrefix = year + '-' + String(month + 1).padStart(2, '0');
+    let monthSum = 0, monthDays = 0;
+    Object.keys(mapByIso).forEach(function(iso) {
+      if (iso.startsWith(monthPrefix)) { monthSum += mapByIso[iso]; monthDays++; }
+    });
+    document.getElementById('monthAvg').textContent = (monthDays > 0 ? Math.round(monthSum / monthDays) : 0) + '%';
+    document.getElementById('monthCount').textContent = monthDays + ' дн. закрыто';
+
+    document.getElementById('calMonthTitle').textContent = calDate.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
+    const grid = document.getElementById('calendarGrid');
+    grid.innerHTML = '';
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const startOffset = firstDay === 0 ? 6 : firstDay - 1;
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const todayIso = getIsoDate(now);
+
+    for (let i = 0; i < startOffset; i++) {
+      const empty = document.createElement('div');
+      empty.className = 'cal-day empty';
+      grid.appendChild(empty);
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const iso = getIsoDate(new Date(year, month, day));
+      const pct = mapByIso[iso];
+      let lvl = pct !== undefined ? (pct >= 80 ? 'lvl-high' : (pct >= 50 ? 'lvl-mid' : 'lvl-low')) : '';
+      const cell = document.createElement('div');
+      cell.className = 'cal-day ' + lvl + (iso === todayIso ? ' today' : '');
+      cell.innerHTML = '<span class="cal-day-num">' + day + '</span>' + (pct !== undefined ? '<span class="cal-day-pct">' + pct + '%</span>' : '');
+      grid.appendChild(cell);
+    }
+  }
+
+  function finishDay() {
+    let sumPercents = 0;
+    appData.categories.forEach(function(cat) { sumPercents += getCategoryStats(cat).percent; });
+    const totalPercent = Math.round(sumPercents / appData.categories.length);
+    if (!confirm('Завершить день с результатом ' + totalPercent + '% и записать в календарь?')) return;
+
+    const now = new Date(), iso = getIsoDate(now);
+    const existingIdx = appData.history.findIndex(function(h) { return h.iso === iso; });
+    if (existingIdx >= 0) appData.history[existingIdx].percent = totalPercent;
+    else {
+      appData.history.push({ iso: iso, percent: totalPercent });
+      appData.streak = totalPercent >= 80 ? appData.streak + 1 : 0;
+    }
+    appData.categories.forEach(function(cat) { cat.tasks.forEach(function(t) { t.done = false; }); });
+    openCategories.clear();
+    saveData();
+    render();
+  }
+
+  function exportData() {
+    const str = JSON.stringify(appData);
+    navigator.clipboard.writeText(str).then(function() { alert('Бэкап скопирован!'); }).catch(function() { prompt('Скопируйте код:', str); });
+  }
+
+  function importData() {
+    const str = prompt('Вставьте код бэкапа:');
+    if (!str) return;
+    try {
+      const parsed = JSON.parse(str);
+      if (parsed && Array.isArray(parsed.categories)) { appData = parsed; saveData(); render(); alert('Восстановлено!'); }
+    } catch (e) { alert('Ошибка чтения кода.'); }
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  renderDate();
+  render();
+document.addEventListener('DOMContentLoaded', () => {
+  const greetingText = document.getElementById('greeting-text');
+  const editNameBtn = document.getElementById('edit-name-btn');
+  const nameModal = document.getElementById('name-modal');
+  const userNameInput = document.getElementById('user-name-input');
+  const saveNameBtn = document.getElementById('save-name-btn');
+
+  // Функция обновления текста на экране
+  function updateGreeting(name) {
+    greetingText.textContent = `Ассаляму алейкум, ${name}!`;
+    editNameBtn.style.display = 'inline-block';
+  }
+
+  // Проверяем, есть ли сохраненное имя при загрузке страницы
+  const savedName = localStorage.getItem('tracker_user_name');
+
+  if (savedName) {
+    updateGreeting(savedName);
+  } else {
+    nameModal.style.display = 'flex';
+    userNameInput.focus();
+  }
+
+  // Сохранение имени по клику на кнопку
+  function saveName() {
+    const name = userNameInput.value.trim();
+    if (name !== '') {
+      localStorage.setItem('tracker_user_name', name);
+      updateGreeting(name);
+      nameModal.style.display = 'none';
+    }
+  }
+
+  saveNameBtn.addEventListener('click', saveName);
+
+  // Сохранение по нажатию клавиши Enter
+  userNameInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      saveName();
+    }
+  });
+
+  // Открытие окна для изменения имени по клику на карандаш
+  editNameBtn.addEventListener('click', () => {
+    userNameInput.value = localStorage.getItem('tracker_user_name') || '';
+    nameModal.style.display = 'flex';
+    userNameInput.focus();
+const aboutBtn = document.getElementById('about-btn');
+const aboutModal = document.getElementById('about-modal');
+const closeAboutBtn = document.getElementById('close-about-btn');
+
+aboutBtn.addEventListener('click', () => {
+  aboutModal.style.display = 'flex';
+});
+
+closeAboutBtn.addEventListener('click', () => {
+  aboutModal.style.display = 'none';
+});
+
+aboutModal.addEventListener('click', (e) => {
+  if (e.target === aboutModal) {
+    aboutModal.style.display = 'none';
+  }
+});
+
+  });
+});
+
+</script>
+<!-- Модальное окно "О трекере" -->
+<div id="about-modal" class="modal-overlay" style="display: none;" onclick="if(event.target === this) { this.style.display='none'; }">
+  <div class="modal-box" style="max-width: 400px; text-align: left; position: relative;" onclick="event.stopPropagation();">
+    
+    <!-- Крестик закрытия в углу -->
+    <span onclick="document.getElementById('about-modal').style.display='none';" style="position: absolute; top: 12px; right: 16px; font-size: 20px; cursor: pointer; opacity: 0.6;">✕</span>
+
+    <h3 style="text-align: center; margin-top: 0;">О трекере «Дисциплина»</h3>
+    
+    <p>Этот инструмент создан для того, чтобы помогать вам сохранять фокус, выстраивать полезные привычки и двигаться к целям каждый день.</p>
+    
+    <ul style="padding-left: 20px; margin: 15px 0; line-height: 1.5; font-size: 14px;">
+      <li style="margin-bottom: 8px;"><strong>Ничего лишнего:</strong> только вы, ваши задачи и ежедневный прогресс.</li>
+      <li style="margin-bottom: 8px;"><strong>Полная приватность:</strong> все данные и ваше имя хранятся локально в памяти вашего браузера и никуда не передаются.</li>
+      <li style="margin-bottom: 8px;"><strong>Постоянство:</strong> маленькие шаги каждый день дают большой результат на дистанции.</li>
+    </ul>
+
+    <p style="text-align: right; font-size: 13px; color: #666666; margin: 18px 0 15px; line-height: 1.4;">
+      С намерением быть полезным,<br><strong>Сайлауов С.С.</strong>
+    </p>
+
+    <button type="button" onclick="document.getElementById('about-modal').style.display='none';">Понятно</button>
+  </div>
+</div>
+<script>
+  (function() {
+    const quotesDB = {
+      general: [
+        { text: '«Самые любимые деяния пред Аллахом — те, которые совершаются с постоянством, даже если их немного».', source: 'Хадис (Аль-Бухари, Муслим)', label: '✨ О постоянстве' },
+        { text: '«Воистину, за тягостью наступает облегчение».', source: 'Священный Коран, 94:6', label: '✨ О терпении' },
+        { text: '«Поистине, дела оцениваются только по намерениям, и каждому человеку достанется лишь то, что он намеревался обрести».', source: 'Хадис (Аль-Бухари, Муслим)', label: '✨ Об искренности' },
+        { text: '«Используй пять вещей прежде пяти других: молодость до старости, здоровье до болезни, богатство до бедности, свободное время до занятости и жизнь до смерти».', source: 'Хадис (Аль-Хаким)', label: '✨ О ценности времени' }
+      ],
+      namaz: [
+        { text: '«Воистину, намаз оберегает от мерзости и предосудительного».', source: 'Священный Коран, 29:45', label: '🕌 Намаз' },
+        { text: '«Ближе всего к своему Господу раб оказывается во время земного поклона, так почаще же обращайтесь к Нему с мольбами в этом положении».', source: 'Хадис (Муслим)', label: '🕌 Намаз' },
+        { text: '«Обратитесь за помощью к терпению и намазу. Воистину, намаз является тяжким бременем для всех, кроме смиренных».', source: 'Священный Коран, 2:45', label: '🕌 Намаз' },
+        { text: '«Первое, за что раб Аллаха будет рассчитан в Судный день — это намаз. Если он был хорош, то хорошими будут и все остальные его дела».', source: 'Хадис (Ат-Тирмизи)', label: '🕌 Намаз' }
+      ],
+      family: [
+        { text: '«Лучший из вас тот, кто лучше всех относится к своей семье, и я лучше всех из вас отношусь к своей семье».', source: 'Хадис (Ат-Тирмизи)', label: '🏡 Семья' },
+        { text: '«Господь наш! Даруй нам отраду глаз в наших супругах и потомках и сделай нас образцом для богобоязненных».', source: 'Священный Коран, 25:74', label: '🏡 Семья' },
+        { text: '«Кто желает, чтобы его удел был увеличен, а срок жизни продлён, пусть поддерживает родственные связи».', source: 'Хадис (Аль-Бухари, Муслим)', label: '🏡 Семья' }
+      ],
+      sport: [
+        { text: '«Сильный верующий лучше пред Аллахом и более любим Им, чем слабый верующий, хотя в каждом из них есть благо».', source: 'Хадис (Муслим)', label: '💪 Спорт и сила' },
+        { text: '«Есть две милости, которыми обделены многие люди: здоровье и свободное время».', source: 'Хадис (Аль-Бухари)', label: '💪 Спорт и здоровье' },
+        { text: '«Поистине, у твоего тела есть право на тебя».', source: 'Хадис (Аль-Бухари, Муслим)', label: '💪 Спорт и тело' }
+      ],
+      study: [
+        { text: '«Скажи: "Господи! Приумножь мои знания"».', source: 'Священный Коран, 20:114', label: '📚 Учеба и знания' },
+        { text: '«Тому, кто вступил на путь поиска знаний, Аллах облегчит путь в Рай».', source: 'Хадис (Муслим)', label: '📚 Учеба' },
+        { text: '«Неужели равны те, которые знают, и те, которые не знают? Воистину, поминают назидание только обладающие разумом».', source: 'Священный Коран, 39:9', label: '📚 Учеба' }
+      ],
+      content: [
+        { text: '«Лучший из людей — тот, кто приносит больше пользы другим людям».', source: 'Хадис (Ат-Табарани)', label: '🎬 Контент и польза' },
+        { text: '«Кто призывал к верному руководству, тому будет награда, подобная наградам тех, кто последовал за ним».', source: 'Хадис (Муслим)', label: '🎬 Контент' },
+        { text: '«Доброе слово подобно прекрасному дереву, корни которого прочны, а ветви восходят к небу».', source: 'Священный Коран, 14:24', label: '🎬 Контент' },
+        { text: '«Поистине, Аллах любит, когда кто-нибудь из вас, выполняя какое-либо дело, делает его наилучшим образом».', source: 'Хадис (Аль-Байхаки)', label: '🎬 Контент и качество' }
+      ],
+      sleep: [
+        { text: '«И сделали ваш сон отдыхом, и сделали ночь покрывалом».', source: 'Священный Коран, 78:9–10', label: '😴 Сон и отдых' },
+        { text: '«Он — Тот, Кто сделал для вас ночь покрывалом, сон — отдыхом, а день — оживлением».', source: 'Священный Коран, 25:47', label: '😴 Сон и режим' },
+        { text: '«Твой Господь имеет право на тебя, твоя душа имеет право на тебя, и твоя семья имеет право на тебя. Так отдавай же каждому должное».', source: 'Хадис (Аль-Бухари)', label: '😴 Сон и баланс' }
+      ]
+    };
+
+    let currentCategory = 'general';
+
+    function showQuote(categoryKey) {
+      const list = quotesDB[categoryKey] || quotesDB.general;
+      const randomItem = list[Math.floor(Math.random() * list.length)];
+      
+      const textEl = document.getElementById('quoteText');
+      const sourceEl = document.getElementById('quoteSource');
+      const labelEl = document.getElementById('quoteCategory');
+
+      if (textEl && sourceEl && labelEl) {
+        textEl.textContent = randomItem.text;
+        sourceEl.textContent = randomItem.source;
+        labelEl.textContent = randomItem.label;
+      }
+    }
+
+    // При загрузке страницы показываем цитату о постоянстве
+    showQuote('general');
+
+    // Ручное обновление цитаты по кнопке 🔄
+    const refreshBtn = document.getElementById('refreshQuoteBtn');
+    if (refreshBtn) {
+      refreshBtn.addEventListener('click', () => showQuote(currentCategory));
+    }
+
+    // Точное распознавание при клике по любой из 6 сфер
+    const container = document.getElementById('categoriesContainer');
+    if (container) {
+      container.addEventListener('click', (e) => {
+        // Ищем родительскую карточку категории, по которой кликнули
+        let target = e.target;
+        let foundCategory = null;
+
+        while (target && target !== container) {
+          const text = target.textContent.toLowerCase();
+          // Проверяем, что мы нашли конкретную карточку, а не весь список сразу
+          const matches = [
+            text.includes('намаз'),
+            text.includes('семья'),
+            text.includes('спорт'),
+            text.includes('учеба'),
+            text.includes('контент'),
+            text.includes('сон')
+          ].filter(Boolean).length;
+
+          if (matches === 1) {
+            if (text.includes('намаз')) foundCategory = 'namaz';
+            else if (text.includes('семья')) foundCategory = 'family';
+            else if (text.includes('спорт')) foundCategory = 'sport';
+            else if (text.includes('учеба')) foundCategory = 'study';
+            else if (text.includes('контент')) foundCategory = 'content';
+            else if (text.includes('сон')) foundCategory = 'sleep';
+            break;
+          }
+          target = target.parentElement;
+        }
+
+        if (foundCategory) {
+          currentCategory = foundCategory;
+          showQuote(currentCategory);
+        }
+      });
+    }
+  })();
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js');
+  }
+</script>
+<script>
+  document.addEventListener('change', function(e) {
+    // Срабатывает, когда пользователь ставит галочку в чекбокс
+    if (e.target && e.target.type === 'checkbox' && e.target.checked) {
+      
+      // 1. Легкое подпрыгивание родительского блока задачи
+      const parentBlock = e.target.closest('div, li, label');
+      if (parentBlock) {
+        parentBlock.classList.add('pop-effect');
+        setTimeout(() => parentBlock.classList.remove('pop-effect'), 200);
+      }
+
+      // 2. Эффект искорок из места клика
+      const rect = e.target.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      const colors = ['#10b981', '#fbbf24', '#34d399', '#ffffff']; // Изумрудный, золотой, белый
+
+      for (let i = 0; i < 8; i++) {
+        const sparkle = document.createElement('div');
+        sparkle.className = 'sparkle';
+        
+        // Случайное направление разлета
+        const angle = (Math.PI * 2 * i) / 8;
+        const distance = 25 + Math.random() * 20;
+        const tx = Math.cos(angle) * distance + 'px';
+        const ty = Math.sin(angle) * distance + 'px';
+
+        sparkle.style.left = centerX + 'px';
+        sparkle.style.top = centerY + 'px';
+        sparkle.style.backgroundColor = colors[i % colors.length];
+        sparkle.style.setProperty('--tx', tx);
+        sparkle.style.setProperty('--ty', ty);
+
+        document.body.appendChild(sparkle);
+
+        // Удаляем частицу после завершения анимации
+        setTimeout(() => sparkle.remove(), 600);
+      }
+    }
+  });
+</script>
+
+</body>
+
+
+
+<!-- Всплывающее окно для ввода имени -->
+<div id="name-modal" class="modal-overlay" style="display: none;">
+  <div class="modal-box">
+    <h3>Добро пожаловать!</h3>
+    <p>Как вас зовут?</p>
+    <input type="text" id="user-name-input" placeholder="Введите ваше имя..." autocomplete="off">
+    <button id="save-name-btn">Сохранить</button>
+  </div>
+</div>
+</html>
